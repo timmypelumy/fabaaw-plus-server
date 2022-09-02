@@ -12,7 +12,7 @@ def get_datetime_float():
     return datetime.now().timestamp()
 
 
-LATEST_DATE_OF_BIRTH =  (datetime.now() - timedelta(weeks=  52 * 18 )).timestamp()
+LATEST_DATE_OF_BIRTH =  (datetime.now() - timedelta(weeks=  (52 * 18) + 4 )).timestamp()
 EARLIEST_DATE_OF_BIRTH =  (datetime.now() - timedelta(weeks=  52 * 50 )).timestamp()
 
 class Gender(str,Enum):
@@ -39,7 +39,7 @@ class UserBioData(BaseModel):
     date_of_birth : float = Field( gt= EARLIEST_DATE_OF_BIRTH, lt= LATEST_DATE_OF_BIRTH, alias= 'dateOfBirth' )
     gender : Gender 
     country : str = Field( min_length= 2, max_length= 5)
-    phone_number : str = Field( min_length= 10, max_length= 12, alias= 'phoneNumber')
+    phone_number : str = Field( min_length= 10, max_length= 15, alias= 'phoneNumber')
     email_address  : EmailStr = Field( alias='emailAddress' )
     home_address : Union[str,None] = Field( alias='homeAddress', min_length= 64, default= None )
     city : Union[str,None] = Field(  min_length= 3, default= None )
@@ -64,8 +64,7 @@ class UserModel(BaseModel):
     class Meta:
         allow_population_by_field_name = True
 
-class CreateUserInputModel(BaseModel):
-    biodata : UserBioData
+class CreateUserInputModel(UserBioData):
     password : str = Field(min_length= 8, max_length= 25)
 
     class Meta:

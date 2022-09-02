@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from routers import users
 from config import app_settings
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(title='Fabaaw Plus', description= "A decentralized identity management system powered by blockchain technology",version= '0.1.0')
@@ -18,21 +19,19 @@ def shutdown():
 
 
 
-allowed_origins = [
+origins = [
 
     'http://localhost:3000'
     
 ]
 
-
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=False,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get('/ping', tags=["Check API Server Status"])
@@ -48,8 +47,6 @@ app.include_router(
     tags=['Users'],
 
 )
-
-
 
 
 # Run application
