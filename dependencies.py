@@ -1,5 +1,5 @@
 from fastapi.security import  OAuth2PasswordBearer
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Path
 from jose import jwt, JWTError
 from config import app_settings as settings
 from db import db
@@ -9,6 +9,18 @@ from models.users import UserModel
 
 
 oauth2_scheme =  OAuth2PasswordBearer(tokenUrl= '/api/v1/login')
+
+
+async def get_user_by_share_id( share_id : str =  Path(min_length= 32)):
+    print(share_id)
+    user = await db.users.find_one({ 'share_id' : share_id})
+    if user is None:
+        raise HTTPException(detail= "Share ID does not exist!", status_code= 404)
+
+    if user['disabled']:
+         raise HTTPException(detail= "Share ID does not exist!", status_code= 404)
+
+    return user
 
 async def get_authenticated_user( token : str  = Depends(oauth2_scheme)):
     

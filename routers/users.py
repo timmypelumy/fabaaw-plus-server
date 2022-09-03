@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Path
 from models.users import CreateUserInputModel, UserModel
 from db import db
 from lib.hashing import hash_password
-from dependencies import get_authenticated_user
+from dependencies import get_authenticated_user, get_user_by_share_id
 
 router = APIRouter(prefix='/users')
 
@@ -12,6 +12,11 @@ async def get_authenticated_user(user: UserModel = Depends(get_authenticated_use
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return user
+
+@router.get('/share-id/{share_id}', response_model=UserModel, response_model_exclude=['salt', 'password_hash', 'kyc'])
+async def get_user_by_share_id( user : UserModel = Depends(get_user_by_share_id) ):
+    return user
+
 
 
 @router.post('', response_model=UserModel, response_model_exclude=['salt', 'password_hash', 'kyc'])
