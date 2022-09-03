@@ -2,11 +2,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import List, Union
 from pydantic import BaseModel, Field, EmailStr, HttpUrl
-from uuid import UUID, uuid4
-# from fastapi import F
+from uuid import  uuid4
 
 def gen_id():
-    return uuid4().hex()
+    return str(uuid4())
 
 def get_datetime_float():
     return datetime.now().timestamp()
@@ -26,7 +25,7 @@ class UserKYCData(BaseModel):
     driving_license_urls :  Union[None, List[HttpUrl]] = Field( default= None, min_items= 2, alias='drivingLicenseUrls')
     national_identity_number : Union[str,None] = Field( default= None, alias='nationalIdentityNumber')
 
-    class Meta:
+    class Config:
         allow_population_by_field_name = True
 
 
@@ -47,26 +46,40 @@ class UserBioData(BaseModel):
     picture_urls :  Union[None, List [HttpUrl]] = Field( default= None, min_items= 2, alias= 'pictureUrls')
 
 
-    class Meta:
+    class Config:
         allow_population_by_field_name = True
     
     
     
 
-class UserModel(BaseModel):
-    user_id : UUID  = Field(default_factory= gen_id, alias = 'userId')
-    biodata : UserBioData
+class UserModel(UserBioData):
+    user_id : str  = Field(default_factory= gen_id, alias = 'userId')
     kyc : Union[ UserKYCData, None] = Field(default= None)
     date_joined : float = Field( default_factory=  get_datetime_float)
     is_active : bool = Field( default= True )
-    password_hash : str = Field( min_length= 32)
+    password_hash : str = Field( min_length= 32, alias= 'passwordHash')
+    salt : str =  Field( min_length= 32)
+    disabled : bool = Field( default= False)
 
-    class Meta:
+    class Config:
         allow_population_by_field_name = True
 
 class CreateUserInputModel(UserBioData):
     password : str = Field(min_length= 8, max_length= 25)
 
-    class Meta:
+    class Config:
         allow_population_by_field_name = True
 
+
+class Token(BaseModel):
+    access_token : str = Field(alias='accessToken')
+    token_type : str = Field(alias='tokenType')
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class TokenData(BaseModel):
+    user_id : str 
+    class Config:
+        allow_population_by_field_name = True
