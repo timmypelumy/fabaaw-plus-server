@@ -10,3 +10,4 @@ class Settings(BaseSettings):
     token_expiration : int = 30
     secret_key : str = os.urandom(128).hex()
     hash_algorithm : str = 'HS256'
+    client_url : str = 'http://localhost:3000'

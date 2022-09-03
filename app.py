@@ -8,7 +8,8 @@ from lib.security import authenticate_user, create_access_token
 
 ALLOWED_ORIGINS = [
 
-    'http://localhost:3000' 
+    'http://localhost:3000' ,
+    app_settings.client_url
 ]
 
 
