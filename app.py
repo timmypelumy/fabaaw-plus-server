@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from models.users import Token
 from lib.security import authenticate_user, create_access_token
+from routers import notifications
 
 ALLOWED_ORIGINS = [
 
@@ -55,6 +56,14 @@ app.include_router(
     router=users.router,
     prefix='/api/v1',
     tags=['Users'],
+)
+
+
+
+app.include_router(
+    router=notifications.router,
+    prefix='/api/v1',
+    tags=['Notifications'],
 )
 
 
