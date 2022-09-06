@@ -11,7 +11,7 @@ from models.users import UserModel
 oauth2_scheme =  OAuth2PasswordBearer(tokenUrl= '/api/v1/login')
 
 
-async def get_user_by_share_id( share_id : str =  Path(min_length= 32)):
+async def get_user_by_share_id( share_id : str =  Path(min_length= 4)):
     print(share_id)
     user = await db.users.find_one({ 'share_id' : share_id})
     if user is None:
