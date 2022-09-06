@@ -3,12 +3,19 @@ from enum import Enum
 from typing import List, Union
 from pydantic import BaseModel, Field, EmailStr, HttpUrl
 from uuid import  uuid4
+from nanoid import generate
 
 def gen_id():
     return str(uuid4())
 
 def get_datetime_float():
     return datetime.now().timestamp()
+
+def get_nano_id():
+    alph = 'abcdefghijklmnopqrstuvwxyz'
+    alph =+ (alph.upper() + '0123456789')
+    return generate(alph,10 )
+
 
 
 LATEST_DATE_OF_BIRTH =  (datetime.now() - timedelta(weeks=  (52 * 18) + 4 )).timestamp()
@@ -54,7 +61,7 @@ class UserBioData(BaseModel):
 
 class UserModel(UserBioData):
     user_id : str  = Field(default_factory= gen_id, alias = 'userId')
-    share_id : str = Field(default_factory= gen_id, alias = 'shareId')
+    share_id : str = Field(default_factory= get_nano_id, alias = 'shareId')
     kyc : Union[ UserKYCData, None] = Field(default= None)
     date_joined : float = Field( default_factory=  get_datetime_float)
     is_active : bool = Field( default= True )
