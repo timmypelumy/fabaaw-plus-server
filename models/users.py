@@ -13,8 +13,7 @@ def get_datetime_float():
 
 def get_nano_id():
     alph = 'abcdefghijklmnopqrstuvwxyz'
-    alph =+ (alph.upper() + '0123456789')
-    return generate(alph,10 )
+    return generate( f"{alph}{alph.upper()}0123456789" ,10 )
 
 
 
