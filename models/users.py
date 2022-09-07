@@ -16,9 +16,8 @@ def get_nano_id():
     return generate( f"{alph}{alph.upper()}0123456789" ,10 )
 
 
-
-LATEST_DATE_OF_BIRTH =  (datetime.now() - timedelta(weeks=  (52 * 18) + 4 )).timestamp()
-EARLIEST_DATE_OF_BIRTH =  (datetime.now() - timedelta(weeks=  52 * 50 )).timestamp()
+eighteenYears = (18 * 365 * 24 * 60 * 60) - ( 30 * 24 * 60 * 60)
+threshold = datetime.now().timestamp() - eighteenYears
 
 class Gender(str,Enum):
     MALE = 'male'
@@ -35,13 +34,11 @@ class UserKYCData(BaseModel):
         allow_population_by_field_name = True
 
 
-
-
 class UserBioData(BaseModel):
     firstname : str = Field(min_length= 3, max_length= 25)
     lastname : str = Field(min_length= 3, max_length= 25)
     middlename : Union[str,None] = Field(default=None, min_length= 3, max_length= 25)
-    date_of_birth : float = Field( gt= EARLIEST_DATE_OF_BIRTH, lt= LATEST_DATE_OF_BIRTH, alias= 'dateOfBirth' )
+    date_of_birth : float = Field(  lt= threshold, alias= 'dateOfBirth' )
     gender : Gender 
     country : str = Field( min_length= 2, max_length= 5)
     phone_number : str = Field( min_length= 10, max_length= 15, alias= 'phoneNumber')
