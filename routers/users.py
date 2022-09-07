@@ -15,9 +15,19 @@ async def get_authenticated_user(user: UserModel = Depends(get_authenticated_use
     return user
 
 
-@router.get('/share-id/{share_id}', response_model=UserModel, response_model_exclude=['salt', 'password_hash', 'kyc'])
+@router.get('/share-id/{share_id}', response_model=UserModel, response_model_exclude=['salt', 'password_hash', 'kyc', 'user_id', 'email_address'])
 async def get_user_by_share_id(user: UserModel = Depends(get_user_by_share_id)):
     return user
+
+
+
+
+@router.delete('')
+async def delete_user(user: UserModel = Depends(get_authenticated_user)):
+    if user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    
+    await db.users.delete_one({'user_id' : user.user_id})
 
 
 @router.post('', response_model=UserModel, response_model_exclude=['salt', 'password_hash', 'kyc'])
@@ -50,6 +60,8 @@ async def create_user(body:  CreateUserInputModel):
     user = await db.users.find_one({'_id': result.inserted_id})
 
     return user
+
+
 
 
 @router.post('/check-email-exists/{email}')
