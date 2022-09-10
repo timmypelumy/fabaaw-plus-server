@@ -78,6 +78,11 @@ class UserKYCData(BaseModel):
         allow_population_by_field_name = True
 
 
+class MaritalStatuses(str,Enum):
+    married = "married"
+    single  = "single"
+    divorced = "divorced"
+
 class UserBioData(BaseModel):
     firstname: str = Field(min_length=3, max_length=25)
     lastname: str = Field(min_length=3, max_length=25)
@@ -95,6 +100,14 @@ class UserBioData(BaseModel):
     state: Union[str, None] = Field(min_length=3, default=None)
     picture_urls:  Union[None, List[HttpUrl]] = Field(
         default=None, min_items=2, alias='pictureUrls')
+    marital_status : Union[ MaritalStatuses,None] = Field(alias='maritalStatus')
+    nationality: Union[str,None] = Field(min_length=2, max_length=5)
+    place_of_birth: Union[str, None] = Field(min_length=3, default=None, alias='placeOfBirth')
+    mother_maiden_name: Union[str,None] = Field(min_length=3, max_length=25, alias='motherMaidenName')
+    is_valid_tree : bool = Field(default= False, alias='isValidTree')
+
+
+
 
     class Config:
         allow_population_by_field_name = True

@@ -1,6 +1,6 @@
 from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile, Form
-from models.users import BVNData, CreateUserInputModel, UpdateContactInfo, UserModel
+from models.users import BVNData, CreateUserInputModel, UpdateContactInfo, UserBioData, UserModel
 from db import db
 from lib.hashing import hash_password
 from dependencies import get_authenticated_user, get_user_by_share_id
@@ -86,6 +86,21 @@ async def check_email_exists(phone: str = Path(min_length=8)):
 
 
 # User Data Updates
+
+
+
+@router.put('/basic-info',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
+async def update_user_contact_info(body: UserBioData,  user: UserModel = Depends(get_authenticated_user)):
+
+    user_dict = user.dict()
+
+    user_dict.update( body.dict() )
+
+    user_dict.update({ 'is_valid_tree' : True})
+
+    await db.users.update_one({'user_id': user.user_id}, {'$set': user_dict })
+
+    return await db.users.find_one({'user_id': user.user_id})
 
 @router.put('/contact-info',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
 async def update_user_contact_info(body: UpdateContactInfo,  user: UserModel = Depends(get_authenticated_user)):
