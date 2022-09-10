@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
-from models.users import CreateUserInputModel, UserModel
+from typing import Union
+from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile, Form
+from models.users import BVNData, CreateUserInputModel, UpdateContactInfo, UserModel
 from db import db
 from lib.hashing import hash_password
 from dependencies import get_authenticated_user, get_user_by_share_id
 from pydantic import EmailStr
+from lib.upload_to_ipfs import upload_to_ipfs
+
 
 router = APIRouter(prefix='/users')
 
@@ -20,14 +23,12 @@ async def get_user_by_share_id(user: UserModel = Depends(get_user_by_share_id)):
     return user
 
 
-
-
 @router.delete('')
 async def delete_user(user: UserModel = Depends(get_authenticated_user)):
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
-    
-    await db.users.delete_one({'user_id' : user.user_id})
+
+    await db.users.delete_one({'user_id': user.user_id})
 
 
 @router.post('', response_model=UserModel, response_model_exclude=['salt', 'password_hash', 'kyc'])
@@ -62,8 +63,6 @@ async def create_user(body:  CreateUserInputModel):
     return user
 
 
-
-
 @router.post('/check-email-exists/{email}')
 async def check_email_exists(email: EmailStr = Path()):
 
@@ -84,3 +83,77 @@ async def check_email_exists(phone: str = Path(min_length=8)):
         return {'exists': True}
     else:
         return {'exists': False}
+
+
+# User Data Updates
+
+@router.put('/contact-info',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
+async def update_user_contact_info(body: UpdateContactInfo,  user: UserModel = Depends(get_authenticated_user)):
+
+    await db.users.update_one({'user_id': user.user_id}, {'$set': {'email_address': body.email_address, 'phone_number': body.phone_number}})
+
+    return await db.users.find_one({'user_id': user.user_id})
+
+
+@router.put('/documents/{doc_type}',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
+async def update_user_photograph(doc: UploadFile = Form(), doc_type: str = Path(), user: UserModel = Depends(get_authenticated_user)):
+    allowed_doc_types = ['photograph', 'signature']
+    # MAX_FILE_SIZE = 1024 * 1024 * 3
+
+    SUPPORTED_FORMATS = [
+        "image/jpg",
+        "image/jpeg",
+        "image/webp",
+        "image/png",
+    ]
+
+    if allowed_doc_types.count(doc_type) == 0:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    if SUPPORTED_FORMATS.count(doc.content_type) == 0:
+        raise HTTPException(
+            status_code=400, detail="Invalid Content Type for doc")
+
+    res = upload_to_ipfs(doc.file)
+
+    user_docs = user.documents.dict() if user.documents else {}
+
+    user_docs.update({doc_type + '_url': res['url']})
+    await db.users.update_one({'user_id': user.user_id}, {'$set': {'documents': user_docs}})
+
+    return await db.users.find_one({'user_id': user.user_id})
+
+
+@router.put('/bvn',   response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
+async def update_user_bvn_data(bvn: int = Form(min=10000000000, max=99999999999), facePhoto: UploadFile = Form(), signaturePhoto: UploadFile = Form(), user: UserModel = Depends(get_authenticated_user)):
+
+    # MAX_FILE_SIZE = 1024 * 1024 * 3
+
+    SUPPORTED_FORMATS = [
+        "image/jpg",
+        "image/jpeg",
+        "image/webp",
+        "image/png",
+    ]
+
+    if SUPPORTED_FORMATS.count(facePhoto.content_type) == 0:
+        raise HTTPException(
+            status_code=400, detail="Invalid Content Type for facePhoto")
+
+    if SUPPORTED_FORMATS.count(signaturePhoto.content_type) == 0:
+        raise HTTPException(
+            status_code=400, detail="Invalid Content Type for signaturePhotot")
+
+    res_face_photo = upload_to_ipfs(facePhoto.file)
+    res_signature_photo = upload_to_ipfs(signaturePhoto.file)
+
+    bvn_data = BVNData(
+        bvn=bvn,
+        face_photo_url=res_face_photo['url'],
+        signature_photo_url=res_signature_photo['url'],
+        completed=True
+    )
+
+    await db.users.update_one({'user_id': user.user_id}, {'$set': {'bvn_data': bvn_data.dict()}})
+
+    return await db.users.find_one({'user_id': user.user_id})
