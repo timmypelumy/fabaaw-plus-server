@@ -1,6 +1,6 @@
 from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile, Form
-from models.users import BVNData, CreateUserInputModel, UpdateContactInfo, UserBioData, UserModel
+from models.users import BVNData, CreateUserInputModel, IdentityCard, IdentityCardTypes, UpdateContactInfo, UserBioData, UserModel
 from db import db
 from lib.hashing import hash_password
 from dependencies import get_authenticated_user, get_user_by_share_id
@@ -88,19 +88,44 @@ async def check_email_exists(phone: str = Path(min_length=8)):
 # User Data Updates
 
 
+@router.put('/id-cards',   response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
+async def update_id_cards(id_number: int = Form(min=100000000, max=999999999999999, alias='idNumber'), doc: UploadFile = Form(), type: IdentityCardTypes = Form(), issue_date: float = Form(alias='issueDate'), expiry_date: float = Form(alias='expiryDate'), user: UserModel = Depends(get_authenticated_user)):
+
+    user_documents = user.documents.dict() if user.documents else {}
+    user_documents_cards = user_documents['cards'] if user_documents.get('cards',None) else []
+
+    res = upload_to_ipfs(doc.file)
+    id_card = IdentityCard(
+        type=type,
+        issue_date=issue_date,
+        expiry_date=expiry_date,
+        id_number=id_number,
+        url=res['url'],
+    )
+
+    user_documents_cards.append(id_card.dict())
+    user_documents['cards'] = user_documents_cards
+
+
+    await db.users.update_one({'user_id': user.user_id}, {'$set': { 'documents' : user_documents } })
+
+    return await db.users.find_one({'user_id': user.user_id})
+
+
 
 @router.put('/basic-info',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
 async def update_user_contact_info(body: UserBioData,  user: UserModel = Depends(get_authenticated_user)):
 
     user_dict = user.dict()
 
-    user_dict.update( body.dict() )
+    user_dict.update(body.dict())
 
-    user_dict.update({ 'is_valid_tree' : True})
+    user_dict.update({'is_valid_tree': True})
 
-    await db.users.update_one({'user_id': user.user_id}, {'$set': user_dict })
+    await db.users.update_one({'user_id': user.user_id}, {'$set': user_dict})
 
     return await db.users.find_one({'user_id': user.user_id})
+
 
 @router.put('/contact-info',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
 async def update_user_contact_info(body: UpdateContactInfo,  user: UserModel = Depends(get_authenticated_user)):

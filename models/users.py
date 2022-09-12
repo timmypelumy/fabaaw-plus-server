@@ -6,6 +6,7 @@ from uuid import uuid4
 from nanoid import generate
 
 
+
 def gen_id():
     return str(uuid4())
 
@@ -47,15 +48,29 @@ class BVNData(BaseModel):
 class IdentityCardTypes(str, Enum):
     driving_license = "DRIVING_LICENSE"
     national_id = 'NATIONAL_ID_CARD'
-    voters_card = "VOTERS_CARD"
-    students_id = "STUDENTS_ID_CARD"
+    voters_card = "VOTER_CARD"
+    students_id = "SCHOOL_CARD"
+    nimc = "NIMC"
 
 
-class IdentityCard(BaseModel):
+class IdentityCardBaseModel(BaseModel):
     type: IdentityCardTypes
-    url:  HttpUrl
     reason: Union[str, None] = None
+    issue_date: float = Field(alias='issueDate')
+    expiry_date: float = Field(alias='expiryDate')
     uid: str = Field(default_factory=get_nano_id)
+    id_number: int = Field(
+        alias='idNumber', min=100000000, max=999999999999999)
+
+    class Config:
+        allow_population_by_field_name = True
+
+class IdentityCard(IdentityCardBaseModel):
+    url:  HttpUrl
+
+    class Config:
+        allow_population_by_field_name = True
+
 
 
 class DocumentsData(BaseModel):
