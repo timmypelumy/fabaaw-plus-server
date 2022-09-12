@@ -19,6 +19,11 @@ def get_nano_id():
     return generate(f"{alph}{alph.upper()}0123456789", 10)
 
 
+def generate_vid():
+    seed = '0123456789'
+    return f"1{generate(seed, 14)}"
+
+
 eighteenYears = (18 * 365 * 24 * 60 * 60) - (30 * 24 * 60 * 60)
 threshold = datetime.now().timestamp() - eighteenYears
 
@@ -38,23 +43,25 @@ class BVNData(BaseModel):
     class Config:
         allow_population_by_field_name = True
 
-class IdentityCardTypes(str,Enum):
+
+class IdentityCardTypes(str, Enum):
     driving_license = "DRIVING_LICENSE"
     national_id = 'NATIONAL_ID_CARD'
     voters_card = "VOTERS_CARD"
     students_id = "STUDENTS_ID_CARD"
 
+
 class IdentityCard(BaseModel):
-    type : IdentityCardTypes 
-    url :  HttpUrl 
-    reason : Union[ str,None] = None 
-    uid : str = Field(default_factory= get_nano_id)
+    type: IdentityCardTypes
+    url:  HttpUrl
+    reason: Union[str, None] = None
+    uid: str = Field(default_factory=get_nano_id)
 
 
 class DocumentsData(BaseModel):
-    photograph_url:  Union[HttpUrl,None] = Field(alias="photographUrl")
-    signature_url: Union[HttpUrl,None] = Field(alias="signatureUrl")
-    cards : Union[None, List[IdentityCard]] = Field(default=None) 
+    photograph_url:  Union[HttpUrl, None] = Field(alias="photographUrl")
+    signature_url: Union[HttpUrl, None] = Field(alias="signatureUrl")
+    cards: Union[None, List[IdentityCard]] = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -78,10 +85,11 @@ class UserKYCData(BaseModel):
         allow_population_by_field_name = True
 
 
-class MaritalStatuses(str,Enum):
+class MaritalStatuses(str, Enum):
     married = "married"
-    single  = "single"
+    single = "single"
     divorced = "divorced"
+
 
 class UserBioData(BaseModel):
     firstname: str = Field(min_length=3, max_length=25)
@@ -100,14 +108,13 @@ class UserBioData(BaseModel):
     state: Union[str, None] = Field(min_length=3, default=None)
     picture_urls:  Union[None, List[HttpUrl]] = Field(
         default=None, min_items=2, alias='pictureUrls')
-    marital_status : Union[ MaritalStatuses,None] = Field(alias='maritalStatus')
-    nationality: Union[str,None] = Field(min_length=2, max_length=5)
-    place_of_birth: Union[str, None] = Field(min_length=3, default=None, alias='placeOfBirth')
-    mother_maiden_name: Union[str,None] = Field(min_length=3, max_length=25, alias='motherMaidenName')
-    is_valid_tree : bool = Field(default= False, alias='isValidTree')
-
-
-
+    marital_status: Union[MaritalStatuses, None] = Field(alias='maritalStatus')
+    nationality: Union[str, None] = Field(min_length=2, max_length=5)
+    place_of_birth: Union[str, None] = Field(
+        min_length=3, default=None, alias='placeOfBirth')
+    mother_maiden_name: Union[str, None] = Field(
+        min_length=3, max_length=25, alias='motherMaidenName')
+    is_valid_tree: bool = Field(default=False, alias='isValidTree')
 
     class Config:
         allow_population_by_field_name = True
@@ -123,10 +130,12 @@ class UserModel(UserBioData):
     salt: str = Field(min_length=32)
     disabled: bool = Field(default=False)
     bvn_data: Union[BVNData, None] = Field(default=None, alias='bvnData')
-    documents : Union[None, DocumentsData] = Field(default= None)
+    documents: Union[None, DocumentsData] = Field(default=None)
+    vid: str = Field(default_factory=generate_vid)
 
     class Config:
         allow_population_by_field_name = True
+
 
 class UpdateContactInfo(BaseModel):
     phone_number: str = Field(
@@ -135,6 +144,7 @@ class UpdateContactInfo(BaseModel):
 
     class Config:
         allow_population_by_field_name = True
+
 
 class CreateUserInputModel(UserBioData):
     password: str = Field(min_length=8, max_length=25)
