@@ -139,7 +139,7 @@ class UserModel(UserBioData):
     user_id: str = Field(default_factory=gen_id, alias='userId')
     share_id: str = Field(default_factory=get_nano_id, alias='shareId')
     kyc: Union[UserKYCData, None] = Field(default=None)
-    date_joined: float = Field(default_factory=get_datetime_float)
+    date_joined: float = Field(default_factory=get_datetime_float, alias = "dateJoined")
     is_active: bool = Field(default=True)
     password_hash: str = Field(min_length=32, alias='passwordHash')
     salt: str = Field(min_length=32)

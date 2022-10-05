@@ -13,10 +13,17 @@ async def get_unread_notifications(user: UserModel = Depends(get_authenticated_u
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
+    await db.notifications.insert_one({
+        "type": "WELCOME_ALERT",
+        "user_id": user.user_id,
+        "read": False,
+        "archived": False,
+    })
+
     cursor = db.notifications.find(
         {'user_id': user.user_id, 'read': False, 'archived': False}).sort('created', -1)
 
-    notifications = await cursor.to_list(length=100)
+    notifications = await cursor.to_list(length=1000)
 
     return notifications
 
@@ -52,7 +59,7 @@ async def set_as_read(user: UserModel = Depends(get_authenticated_user), notific
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    result = await db.notifications.update_one({'notification_id': notification_id, 'user_id' : user.user_id},  {'$set': {'read': True}})
+    result = await db.notifications.update_one({'notification_id': notification_id, 'user_id': user.user_id},  {'$set': {'read': True}})
 
     if result.modified_count == 0:
         raise HTTPException(
@@ -64,7 +71,7 @@ async def set_as_archived(user: UserModel = Depends(get_authenticated_user), not
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    result = await db.notifications.update_one({'notification_id': notification_id , 'user_id' : user.user_id},  {'$set': {'archived': True}})
+    result = await db.notifications.update_one({'notification_id': notification_id, 'user_id': user.user_id},  {'$set': {'archived': True}})
 
     if result.modified_count == 0:
         raise HTTPException(
@@ -76,7 +83,7 @@ async def set_as_unread(user: UserModel = Depends(get_authenticated_user), notif
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    result = await db.notifications.update_one({'notification_id': notification_id , 'user_id' : user.user_id},  {'$set': {'read': False}})
+    result = await db.notifications.update_one({'notification_id': notification_id, 'user_id': user.user_id},  {'$set': {'read': False}})
 
     if result.modified_count == 0:
         raise HTTPException(
@@ -88,7 +95,7 @@ async def set_as_unarchived(user: UserModel = Depends(get_authenticated_user), n
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    result = await db.notifications.update_one({'notification_id': notification_id , 'user_id' : user.user_id},  {'$set': {'archived': False}})
+    result = await db.notifications.update_one({'notification_id': notification_id, 'user_id': user.user_id},  {'$set': {'archived': False}})
 
     if result.modified_count == 0:
         raise HTTPException(
@@ -109,4 +116,4 @@ async def delete_notification(user: UserModel = Depends(get_authenticated_user),
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    await db.notifications.delete_one({'notification_id': notification_id, 'user_id' : user.user_id})
+    await db.notifications.delete_one({'notification_id': notification_id, 'user_id': user.user_id})
