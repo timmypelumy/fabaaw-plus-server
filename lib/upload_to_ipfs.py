@@ -7,7 +7,7 @@ def upload_to_ipfs(file):
     try:
         project_id = settings.infura_project_id
         project_secret = settings.infura_project_secret
-        
+
         response = requests.post(
             '{0}/api/v0/add'.format(settings.ipfs_node_url), files={'fileOne': file}, auth=(project_id, project_secret))
 
@@ -28,6 +28,6 @@ def upload_to_ipfs(file):
 
         return {
 
-            'url': '{0}/{1}'.format(settings.ipfs_read_nodes['cloudflare'], result['Hash']), 'cid': result['Hash']
+            'url': '{0}/{1}'.format(settings.ipfs_read_nodes['ipfsIo'], result['Hash']), 'cid': result['Hash']
 
         }
