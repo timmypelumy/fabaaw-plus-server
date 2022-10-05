@@ -13,17 +13,10 @@ async def get_unread_notifications(user: UserModel = Depends(get_authenticated_u
     if user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    await db.notifications.insert_one({
-        "type": "WELCOME_ALERT",
-        "user_id": user.user_id,
-        "read": False,
-        "archived": False,
-    })
-
     cursor = db.notifications.find(
         {'user_id': user.user_id, 'read': False, 'archived': False}).sort('created', -1)
 
-    notifications = await cursor.to_list(length=1000)
+    notifications = await cursor.to_list(length=100)
 
     return notifications
 

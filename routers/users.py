@@ -6,6 +6,7 @@ from lib.hashing import hash_password
 from dependencies import get_authenticated_user, get_user_by_share_id
 from pydantic import EmailStr
 from lib.upload_to_ipfs import upload_to_ipfs
+from models.notification import Notification
 
 
 router = APIRouter(prefix='/users')
@@ -60,6 +61,12 @@ async def create_user(body:  CreateUserInputModel):
 
     user = await db.users.find_one({'_id': result.inserted_id})
 
+    await db.notifications.insert_one(Notification(
+        type="WELCOME_ALERT",
+        user_id=user_model.user_id,
+        meta={'firstname': user_model.firstname},
+    ).dict())
+
     return user
 
 
@@ -92,7 +99,8 @@ async def check_email_exists(phone: str = Path(min_length=8)):
 async def update_id_cards(id_number: int = Form(min=100000000, max=999999999999999, alias='idNumber'), doc: UploadFile = Form(), type: IdentityCardTypes = Form(), issue_date: float = Form(alias='issueDate'), expiry_date: float = Form(alias='expiryDate'), user: UserModel = Depends(get_authenticated_user)):
 
     user_documents = user.documents.dict() if user.documents else {}
-    user_documents_cards = user_documents['cards'] if user_documents.get('cards',None) else []
+    user_documents_cards = user_documents['cards'] if user_documents.get(
+        'cards', None) else []
 
     res = upload_to_ipfs(doc.file)
     id_card = IdentityCard(
@@ -106,11 +114,9 @@ async def update_id_cards(id_number: int = Form(min=100000000, max=9999999999999
     user_documents_cards.append(id_card.dict())
     user_documents['cards'] = user_documents_cards
 
-
-    await db.users.update_one({'user_id': user.user_id}, {'$set': { 'documents' : user_documents } })
+    await db.users.update_one({'user_id': user.user_id}, {'$set': {'documents': user_documents}})
 
     return await db.users.find_one({'user_id': user.user_id})
-
 
 
 @router.put('/basic-info',  response_model=UserModel, response_model_exclude=['salt', 'password_hash', ])
