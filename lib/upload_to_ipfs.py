@@ -28,6 +28,6 @@ def upload_to_ipfs(file):
 
         return {
 
-            'url': '{0}/{1}'.format(settings.ipfs_read_nodes['ipfsIo'], result['Hash']), 'cid': result['Hash']
+            'url': '{0}/{1}'.format(settings.ipfs_read_nodes['infura'], result['Hash']), 'cid': result['Hash']
 
         }

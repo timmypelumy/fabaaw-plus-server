@@ -17,5 +17,6 @@ class Settings(BaseSettings):
     infura_project_secret: str = '3a6dfcb5e77b97ba69b90f55e1f7b326'
     ipfs_read_nodes: Dict = {
         'cloudflare': ' https://cloudflare-ipfs.com/ipfs',
-        'ipfsIo': 'https://ipfs.io/ipfs'
+        'ipfsIo': 'https://ipfs.io/ipfs',
+        'infura': "https://fabaaw.infura-ipfs.io/ipfs"
     }
