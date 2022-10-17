@@ -22,7 +22,7 @@ def get_nano_id():
 
 def generate_vid():
     seed = '0123456789'
-    return f"1{generate(seed, 14)}"
+    return f"1{generate(seed, 7)}"
 
 
 eighteenYears = (18 * 365 * 24 * 60 * 60) - (30 * 24 * 60 * 60)
