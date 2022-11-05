@@ -10,7 +10,8 @@ from routers import notifications
 ALLOWED_ORIGINS = [
 
     'http://localhost:3000',
-    app_settings.client_url
+    app_settings.client_url,
+    "https://www.fabaaw.com"
 ]
 
 
