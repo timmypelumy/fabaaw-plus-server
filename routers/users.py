@@ -7,6 +7,8 @@ from dependencies import get_authenticated_user, get_user_by_share_id
 from pydantic import EmailStr
 from lib.upload_to_ipfs import upload_to_ipfs
 from models.notification import Notification
+import time
+import datetime
 
 
 router = APIRouter(prefix='/users')
@@ -203,3 +205,30 @@ async def update_user_bvn_data(bvn: int = Form(min=10000000000, max=99999999999)
     await db.users.update_one({'user_id': user.user_id}, {'$set': {'bvn_data': bvn_data.dict()}})
 
     return await db.users.find_one({'user_id': user.user_id})
+
+
+
+@router.post('/sync-on-chain', response_class= dict)
+async def sync_data_on_chain( user: UserModel = Depends(get_authenticated_user)):
+    data = user.dict()
+
+    on_chain_data = {
+
+        "name" : "FabaawPlus ID On-Chain Data",
+        "timestamp" : time.time(),
+        "generated_on" : str(datetime.datetime.now()),
+        "user_id" : data['user_id'],
+        "data" : data,
+
+
+    }
+
+    res = upload_to_ipfs(on_chain_data)
+
+    cid = res['cid']
+    url = res['url']
+
+
+    return res;
+
+
