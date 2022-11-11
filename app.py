@@ -11,7 +11,8 @@ ALLOWED_ORIGINS = [
 
     'http://localhost:3000',
     app_settings.client_url,
-    "https://www.fabaaw.com"
+    "https://www.fabaawplus.com",
+    "https://fabaawplus.com"
 ]
 
 
