@@ -40,4 +40,5 @@ uvicorn==0.17.6
 watchgod==0.8.2
 websockets==10.3
 nanoid
+cloudinary==1.36.0
 
