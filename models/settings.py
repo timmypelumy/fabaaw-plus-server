@@ -21,3 +21,6 @@ class Settings(BaseSettings):
         'ipfsIo': 'https://ipfs.io/ipfs',
         'infura': "https://fabaaw.infura-ipfs.io/ipfs"
     }
+
+    class Config:
+        env_file = ".env"
