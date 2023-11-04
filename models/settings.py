@@ -21,6 +21,9 @@ class Settings(BaseSettings):
         'ipfsIo': 'https://ipfs.io/ipfs',
         'infura': "https://fabaaw.infura-ipfs.io/ipfs"
     }
+    cloudinary_cloud_name: str = "cloud_name"
+    cloudinary_api_key: str = "api_key"
+    cloudinary_api_secret: str = "api_secret"
 
     class Config:
         env_file = ".env"
