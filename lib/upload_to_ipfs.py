@@ -1,33 +1,33 @@
 import requests
 from fastapi import HTTPException
 from config import app_settings as settings
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 
-def upload_to_ipfs(file):
+
+
+config = cloudinary.config(
+    cloud_name=settings.cloudinary_cloud_name, api_key=settings.cloudinary_api_key, api_secret=settings.cloudinary_api_secret,  secure=True)
+
+
+def upload_to_ipfs(image):
     try:
-        project_id = settings.infura_project_id
-        project_secret = settings.infura_project_secret
+        res = cloudinary.uploader.upload(image, folder="hydratest", resource_type="image")
 
-        response = requests.post(
-            '{0}/api/v0/add'.format(settings.ipfs_node_url), files={'fileOne': file}, auth=(project_id, project_secret))
+        result = {
+            "url": res["url"],
+            "public_id": res["public_id"],
+            "secure_url": res["secure_url"]
+        }
+
+        return result
 
     except Exception as e:
-        print('\n\nIPFS ERROR: ',  e, '\n\n')
+
+        if settings.debug:
+            print(e)
+
         raise HTTPException(
-            status_code=500, detail="Unable to save file ")
-
-    else:
-
-        if not response.ok:
-            print("IPFS ERROR: ", response.status_code, response.text)
-
-            raise HTTPException(
-                status_code=500, detail="Unable to save file ")
-
-        result = response.json()
-
-        return {
-
-            'url': '{0}/{1}'.format(settings.ipfs_read_nodes['infura'], result['Hash']), 'cid': result['Hash']
-
-        }
+            500, "An error occured while trying to upload resource.")
